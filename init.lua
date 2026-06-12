@@ -1010,7 +1010,22 @@ require('lazy').setup({
       local servers = {
         clangd = {},
         -- gopls = {},
-        pylsp = {},
+        -- pylsp = {
+        --   settings = {
+        --     pylsp = {
+        --       plugins = {
+        --         -- 1. Turn off ALL the style police
+        --         pycodestyle = { enabled = false },
+        --         flake8 = { enabled = false },
+        --         pylint = { enabled = false },
+        --         mccabe = { enabled = false }, -- This one complains if your functions are "too complex"
+        --
+        --         -- 2. Keep the actual bug catcher ON
+        --         pyflakes = { enabled = false },
+        --       },
+        --     },
+        --   },
+        -- },
         cmake = {},
         -- rust_analyzer = {},
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
