@@ -323,38 +323,39 @@ end, { desc = '[C]ode [R]un' })
 -- =====================================================================
 -- FUN RANDOM PNG VIEWER (USING FEH)
 -- =====================================================================
-vim.api.nvim_create_autocmd('VimEnter', {
-  -- Create a group so it doesn't duplicate if you reload your config
-  group = vim.api.nvim_create_augroup('RandomImagePopup', { clear = true }),
-  callback = function()
-    -- 1. DEFINE YOUR FOLDER PATH HERE (Make sure it ends with a slash /)
-    local image_dir = vim.fn.expand '~/.config/nvim/pictures/'
-
-    -- 2. Get a list of all PNGs in that folder
-    local pngs = vim.split(vim.fn.glob(image_dir .. '*.png'), '\n')
-
-    -- If the folder is empty or path is wrong, silently do nothing
-    if #pngs == 0 or pngs[1] == '' then
-      return
-    end
-
-    -- 3. Pick a random PNG
-    math.randomseed(os.time())
-    local random_png = pngs[math.random(1, #pngs)]
-
-    -- 4. Launch feh as a background job
-    --   -x : Hides the window border for a cleaner look
-    --   -. : Scales the image down if it is larger than your screen
-    local job_id = vim.fn.jobstart { 'feh', '-x', '-.', random_png }
-
-    -- 5. Auto-close the feh window after 2000 milliseconds (2 seconds)
-    if job_id > 0 then
-      vim.defer_fn(function()
-        vim.fn.jobstop(job_id)
-      end, 2000)
-    end
-  end,
-})
+-- COMMENTED OUT BECAUSE WKURWIA MNIE JUZ
+-- vim.api.nvim_create_autocmd('VimEnter', {
+--   -- Create a group so it doesn't duplicate if you reload your config
+--   group = vim.api.nvim_create_augroup('RandomImagePopup', { clear = true }),
+--   callback = function()
+--     -- 1. DEFINE YOUR FOLDER PATH HERE (Make sure it ends with a slash /)
+--     local image_dir = vim.fn.expand '~/.config/nvim/pictures/'
+--
+--     -- 2. Get a list of all PNGs in that folder
+--     local pngs = vim.split(vim.fn.glob(image_dir .. '*.png'), '\n')
+--
+--     -- If the folder is empty or path is wrong, silently do nothing
+--     if #pngs == 0 or pngs[1] == '' then
+--       return
+--     end
+--
+--     -- 3. Pick a random PNG
+--     math.randomseed(os.time())
+--     local random_png = pngs[math.random(1, #pngs)]
+--
+--     -- 4. Launch feh as a background job
+--     --   -x : Hides the window border for a cleaner look
+--     --   -. : Scales the image down if it is larger than your screen
+--     local job_id = vim.fn.jobstart { 'feh', '-x', '-.', random_png }
+--
+--     -- 5. Auto-close the feh window after 2000 milliseconds (2 seconds)
+--     if job_id > 0 then
+--       vim.defer_fn(function()
+--         vim.fn.jobstop(job_id)
+--       end, 2000)
+--     end
+--   end,
+-- })
 
 -- =====================================================================
 -- WSL FIX: AUTO-CONVERT CRLF TO LF
@@ -447,6 +448,15 @@ require('lazy').setup({
         changedelete = { text = '~' },
       },
     },
+  },
+
+  -- Auto-close and auto-rename HTML and JSX tags
+  {
+    'windwp/nvim-ts-autotag',
+    event = { 'BufReadPre', 'BufNewFile' },
+    config = function()
+      require('nvim-ts-autotag').setup()
+    end,
   },
 
   -- folder sidebar
@@ -1009,26 +1019,16 @@ require('lazy').setup({
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
         clangd = {},
-        -- gopls = {},
         pyright = {},
         ruff = {},
 
-        -- pylsp = {
-        --   settings = {
-        --     pylsp = {
-        --       plugins = {
-        --         -- 1. Turn off ALL the style police
-        --         pycodestyle = { enabled = false },
-        --         flake8 = { enabled = false },
-        --         pylint = { enabled = false },
-        --         mccabe = { enabled = false }, -- This one complains if your functions are "too complex"
-        --
-        --         -- 2. Keep the actual bug catcher ON
-        --         pyflakes = { enabled = false },
-        --       },
-        --     },
-        --   },
-        -- },
+        -- Add these for JS/React:
+        ts_ls = {},
+        eslint = {},
+        -- Optional but highly recommended for CSS/Tailwind in React:
+        tailwindcss = {},
+        emmet_language_server = {},
+
         cmake = {},
         -- rust_analyzer = {},
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
@@ -1125,6 +1125,14 @@ require('lazy').setup({
       formatters_by_ft = {
         lua = { 'stylua' },
         python = { 'ruff_format', 'ruff_organize_imports' },
+
+        -- Add these lines for JS/React formatting:
+        javascript = { 'prettierd', 'prettier', stop_after_first = true },
+        typescript = { 'prettierd', 'prettier', stop_after_first = true },
+        javascriptreact = { 'prettierd', 'prettier', stop_after_first = true },
+        typescriptreact = { 'prettierd', 'prettier', stop_after_first = true },
+        css = { 'prettierd', 'prettier', stop_after_first = true },
+        html = { 'prettierd', 'prettier', stop_after_first = true },
         -- Conform can also run multiple formatters sequentially
         -- python = { "isort", "black" },
         --
@@ -1156,12 +1164,12 @@ require('lazy').setup({
           -- `friendly-snippets` contains a variety of premade snippets.
           --    See the README about individual language/framework/plugin snippets:
           --    https://github.com/rafamadriz/friendly-snippets
-          -- {
-          --   'rafamadriz/friendly-snippets',
-          --   config = function()
-          --     require('luasnip.loaders.from_vscode').lazy_load()
-          --   end,
-          -- },
+          {
+            'rafamadriz/friendly-snippets',
+            config = function()
+              require('luasnip.loaders.from_vscode').lazy_load()
+            end,
+          },
         },
         opts = {},
       },
@@ -1301,7 +1309,24 @@ require('lazy').setup({
     main = 'nvim-treesitter.config', -- Sets main module to use for opts
     -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
     opts = {
-      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' },
+      ensure_installed = {
+        'bash',
+        'c',
+        'diff',
+        'html',
+        'lua',
+        'luadoc',
+        'markdown',
+        'markdown_inline',
+        'query',
+        'vim',
+        'vimdoc',
+        -- Add these web development languages:
+        'javascript',
+        'typescript',
+        'tsx',
+        'css',
+      },
       -- Autoinstall languages that are not installed
       auto_install = true,
       highlight = {
