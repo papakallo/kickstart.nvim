@@ -1018,6 +1018,16 @@ require('lazy').setup({
       --  - settings (table): Override the default settings passed when initializing the server.
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
+        nixd = {
+          settings = {
+            nixd = {
+              formatting = {
+                -- Specify your preferred formatter (e.g., alejandra, nixfmt)
+                command = { 'alejandra' },
+              },
+            },
+          },
+        },
         clangd = {},
         pyright = {},
         ruff = {},
